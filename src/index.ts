@@ -1,10 +1,9 @@
 import { Client } from "discord.js"
-import EventEmiter from 'node:events'
-import db from 'quick.db'
+import { TypedEmitter } from 'tiny-typed-emitter';
 
 export interface TimeoutOptions {
     pulse: number,
-    db: typeof db
+    db: any
 }
 
 export interface Timeout {
@@ -14,7 +13,11 @@ export interface Timeout {
     data: any
 }
 
-class Timeouts extends EventEmiter {
+export interface TimeoutEvents {
+    'expires': (timeout: Timeout) => void;
+}
+
+class Timeouts extends TypedEmitter {
     options: TimeoutOptions
     ready: boolean
     client: Client
@@ -25,19 +28,20 @@ class Timeouts extends EventEmiter {
         this.ready = false
         if(init) this._init()
     }
-    getTimeouts(): Timeout[] | [] {
+    public async getTimeouts(): Promise<Timeout[]> {
         return this.options.db.get('timeouts') || []
     }
-    create(id: string, time: number, data: any): void {
+    public async create(id: string, time: number, data: any): Promise<void> {
         if(!this.ready) throw new Error('Manager is not ready yet')
-        let timeouts: Timeout[] = this.getTimeouts()
+        let timeouts = await this.getTimeouts()
         let expires: number = Date.now() + time
         timeouts.push({id, expires ,time, data})
         this.options.db.set('timeouts', timeouts)
+        this.emit('create', {id, expires ,time, data})
     }
-    private _resolve(): void {
+    private async _resolve(): Promise<void> {
         if(!this.client.readyAt) return;
-        let timeouts = this.getTimeouts()
+        let timeouts = await this.getTimeouts()
         if(1 > timeouts.length) return;
         for(const timeout of timeouts) {
             if(Date.now() >= timeout.expires) {
@@ -45,15 +49,15 @@ class Timeouts extends EventEmiter {
             }
         }
     }
-    out(id: string, expires: number, time: number): void {
-        let timeouts = this.getTimeouts()
+    public async out(id: string, expires: number, time: number): Promise<void> {
+        let timeouts = await this.getTimeouts()
         let timeout: Timeout | null | undefined = timeouts.find((t: Timeout) => t.id === id && t.expires === expires && t.time === time)
         if(!timeout) return;
         this.emit('expires', timeout)
         this.deleteFromDB(id, expires, time)
     }
-    delete(func: Function): void {
-        let timeouts = this.getTimeouts()
+    public async delete(func: Function): Promise<void> {
+        let timeouts = await this.getTimeouts()
         if(1 > timeouts.length) return;
         for(const timeout of timeouts) {
             if(func(timeout)) {
@@ -61,8 +65,8 @@ class Timeouts extends EventEmiter {
             }
         }
     }
-    has(func: Function): boolean {
-        let timeouts = this.getTimeouts()
+    public async has(func: Function): Promise<boolean> {
+        let timeouts = await this.getTimeouts()
         if(1 > timeouts.length) return false
         let so = false;
         for(const timeout of timeouts) {
@@ -72,12 +76,13 @@ class Timeouts extends EventEmiter {
         }
         return so
     }
-    private deleteFromDB(id: string, expires: number, time: number): void {
-        let timeouts = this.getTimeouts()
+    private async deleteFromDB(id: string, expires: number, time: number): Promise<void> {
+        let timeouts = await this.getTimeouts()
         for(let i = 0; i < timeouts.length; i++) {
             if(timeouts[i].id === id && timeouts[i].expires === expires && timeouts[i].time === time) {
                 timeouts.splice(i, 1)
                 this.options.db.set('timeouts', timeouts)
+                this.emit('deleted', timeouts[i])
             }
         }
     }
@@ -86,6 +91,7 @@ class Timeouts extends EventEmiter {
             if(this.client.readyAt) this._resolve.call(this)
         }, this.options.pulse)
         this.ready = true
+        this.emit('ready', this)
     }
 }
 

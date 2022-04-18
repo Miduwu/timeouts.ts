@@ -7,6 +7,7 @@ npm i timeouts.ts-dev
 ```
 
 ## Usage
+**JavaScript:**
 ```js
 const { Timeouts } = require('timeouts.ts-dev')
 const timeouts = new Timeouts(client, {
@@ -22,18 +23,25 @@ timeouts.on('expires', timeout => {
     { id: 'globalId', time: 60000, expires: Date, data: { 'foo': 'bar' } }
     */ 
 })
-```
 
 ### Methods
 #### Create:
-**`<Timeouts>.create(id: string, time: number, data: any): void`**
+**`<Timeouts>.create(id: string, time: number, data: any): Promise<void>`**
 
 Ex: `timeouts.create('globalId', 60_000, 'hello')`
 #### Delete:
-**`<Timeouts>.delete(func: Function): void`**
+**`<Timeouts>.delete(func: Function): Promise<void>`**
 
 Ex: `timeouts.delete((timeout) => timeout.data === 'hello')`
 #### Has:
-**`<Timeouts>`.has(func: Function): boolean**
+**`<Timeouts>.has(func: Function): Promise<boolean>`**
 
 Ex: `timeouts.has((timeout) => timeout.data === 'hello')`
+
+### Events
+```
+ready: Timeouts
+create: Timeout
+delete: Timeout
+expires: Timeout
+```

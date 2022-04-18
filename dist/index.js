@@ -1,35 +1,35 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Timeouts = void 0;
-const tslib_1 = require("tslib");
-const node_events_1 = tslib_1.__importDefault(require("node:events"));
-class Timeouts extends node_events_1.default {
+const tiny_typed_emitter_1 = require("tiny-typed-emitter");
+class Timeouts extends tiny_typed_emitter_1.TypedEmitter {
     options;
     ready;
     client;
-    constructor(client, ops, init = true) {
+    constructor(client, options, init = true) {
         super();
-        this.options = ops;
+        this.options = options;
         this.client = client;
         this.ready = false;
         if (init)
             this._init();
     }
-    getTimeouts() {
+    async getTimeouts() {
         return this.options.db.get('timeouts') || [];
     }
-    create(id, time, data) {
+    async create(id, time, data) {
         if (!this.ready)
             throw new Error('Manager is not ready yet');
-        let timeouts = this.getTimeouts();
+        let timeouts = await this.getTimeouts();
         let expires = Date.now() + time;
         timeouts.push({ id, expires, time, data });
         this.options.db.set('timeouts', timeouts);
+        this.emit('create', { id, expires, time, data });
     }
-    _resolve() {
+    async _resolve() {
         if (!this.client.readyAt)
             return;
-        let timeouts = this.getTimeouts();
+        let timeouts = await this.getTimeouts();
         if (1 > timeouts.length)
             return;
         for (const timeout of timeouts) {
@@ -38,16 +38,16 @@ class Timeouts extends node_events_1.default {
             }
         }
     }
-    out(id, expires, time) {
-        let timeouts = this.getTimeouts();
-        let timeout = timeouts.find(t => t.id === id && t.expires === expires && t.time === time);
+    async out(id, expires, time) {
+        let timeouts = await this.getTimeouts();
+        let timeout = timeouts.find((t) => t.id === id && t.expires === expires && t.time === time);
         if (!timeout)
             return;
         this.emit('expires', timeout);
         this.deleteFromDB(id, expires, time);
     }
-    delete(func) {
-        let timeouts = this.getTimeouts();
+    async delete(func) {
+        let timeouts = await this.getTimeouts();
         if (1 > timeouts.length)
             return;
         for (const timeout of timeouts) {
@@ -56,8 +56,8 @@ class Timeouts extends node_events_1.default {
             }
         }
     }
-    has(func) {
-        let timeouts = this.getTimeouts();
+    async has(func) {
+        let timeouts = await this.getTimeouts();
         if (1 > timeouts.length)
             return false;
         let so = false;
@@ -68,12 +68,13 @@ class Timeouts extends node_events_1.default {
         }
         return so;
     }
-    deleteFromDB(id, expires, time) {
-        let timeouts = this.getTimeouts();
+    async deleteFromDB(id, expires, time) {
+        let timeouts = await this.getTimeouts();
         for (let i = 0; i < timeouts.length; i++) {
             if (timeouts[i].id === id && timeouts[i].expires === expires && timeouts[i].time === time) {
                 timeouts.splice(i, 1);
                 this.options.db.set('timeouts', timeouts);
+                this.emit('deleted', timeouts[i]);
             }
         }
     }
@@ -83,6 +84,7 @@ class Timeouts extends node_events_1.default {
                 this._resolve.call(this);
         }, this.options.pulse);
         this.ready = true;
+        this.emit('ready', this);
     }
 }
 exports.Timeouts = Timeouts;
