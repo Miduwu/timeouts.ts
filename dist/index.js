@@ -15,7 +15,7 @@ class Timeouts extends tiny_typed_emitter_1.TypedEmitter {
             this._init();
     }
     async getTimeouts() {
-        return this.options.db.get('timeouts') || [];
+        return (await this.options.db.get('timeouts')) || [];
     }
     async create(id, time, data) {
         if (!this.ready)

@@ -28,8 +28,8 @@ class Timeouts extends TypedEmitter {
         this.ready = false
         if(init) this._init()
     }
-    public async getTimeouts(): Promise<Timeout[]> {
-        return this.options.db.get('timeouts') || []
+    public async getTimeouts(): Promise<Timeout[] | any[]> {
+        return (await this.options.db.get('timeouts')) || []
     }
     public async create(id: string, time: number, data: any): Promise<void> {
         if(!this.ready) throw new Error('Manager is not ready yet')
