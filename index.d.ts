@@ -25,8 +25,9 @@ export class Timeouts extends TypedEmitter<Events> {
      * 
      * @param {Client} client The client class to check if its ready.
      * @param {TimeoutOptions} options The options to the class.
+     * @param {boolean} init If init the class or not, default true.
      */
-    constructor(client: Client, options: TimeoutOptions);
+    constructor(client: Client, options: TimeoutOptions, init?: boolean);
     /**
      * Returns the timeouts array.
      * @returns {Promise<Timeout[]>} The peding timeouts.

@@ -23,6 +23,7 @@ timeouts.on('expires', timeout => {
     { id: 'globalId', time: 60000, expires: Date, data: { 'foo': 'bar' } }
     */ 
 })
+```
 
 ### Methods
 #### Create:
