@@ -13,11 +13,14 @@ export interface Timeout {
     data: any
 }
 
-export interface TimeoutEvents {
-    'expires': (timeout: Timeout) => void;
+export interface Events {
+    'expires': (timeout: Timeout) => void,
+    'deleted': (timeout: Timeout) => void,
+    'create': (timeout: Timeout) => void,
+    'ready': (timeouts: Timeouts) => void
 }
 
-class Timeouts extends TypedEmitter {
+class Timeouts extends TypedEmitter<Events> {
     options: TimeoutOptions
     ready: boolean
     client: Client

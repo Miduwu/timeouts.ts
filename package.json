@@ -1,6 +1,6 @@
 {
   "name": "timeouts.ts-dev",
-  "version": "3.0.0",
+  "version": "3.5.0",
   "description": "Persistent timeouts that call an event when it expires!",
   "main": "dist/index.js",
   "types": "index.d.ts",
