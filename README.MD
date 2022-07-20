@@ -1,5 +1,5 @@
 # timeouts.ts-dev
-Persistent timeouts that call an event when it expires using quick.db!
+Persistent timeouts that call an event when it expires using custom database!
 
 ## Install
 ```
@@ -7,10 +7,10 @@ npm i timeouts.ts-dev
 ```
 
 ## Usage
-**JavaScript:**
 ```js
-const { Timeouts } = require('timeouts.ts-dev')
-const timeouts = new Timeouts(client, {
+import { Timeouts } from "timeouts.ts-dev";
+
+const timeouts = new Timeouts({
     pulse: 10_000, // 10 seconds,
     db: db // quickdb
 })
@@ -23,6 +23,8 @@ timeouts.on('expires', timeout => {
     { id: 'globalId', time: 60000, expires: Date, data: { 'foo': 'bar' } }
     */ 
 })
+
+timeouts._init() // let's start the class
 ```
 
 ### Methods
@@ -31,11 +33,11 @@ timeouts.on('expires', timeout => {
 
 Ex: `timeouts.create('globalId', 60_000, 'hello')`
 #### Delete:
-**`<Timeouts>.delete(func: Function): Promise<void>`**
+**`<Timeouts>.delete(func: (Timeout) => boolean): Promise<void>`**
 
 Ex: `timeouts.delete((timeout) => timeout.data === 'hello')`
 #### Has:
-**`<Timeouts>.has(func: Function): Promise<boolean>`**
+**`<Timeouts>.has(func: (Timeout) => boolean): Promise<boolean>`**
 
 Ex: `timeouts.has((timeout) => timeout.data === 'hello')`
 

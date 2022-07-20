@@ -1,5 +1,4 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
-import { Client } from 'discord.js';
 
 export interface TimeoutOptions {
     pulse: number,
@@ -23,11 +22,9 @@ export interface Events {
 export class Timeouts extends TypedEmitter<Events> {
     /**
      * 
-     * @param {Client} client The client class to check if its ready.
      * @param {TimeoutOptions} options The options to the class.
-     * @param {boolean} init If init the class or not, default true.
      */
-    constructor(client: Client, options: TimeoutOptions, init?: boolean);
+    constructor(options: TimeoutOptions);
     /**
      * Returns the timeouts array.
      * @returns {Promise<Timeout[]>} The peding timeouts.
@@ -83,5 +80,5 @@ export class Timeouts extends TypedEmitter<Events> {
      * Initialize the class.
      * @returns {void}
      */
-    private _init(): void;
+    public _init(): void;
 }

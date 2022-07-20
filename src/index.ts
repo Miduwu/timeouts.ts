@@ -1,4 +1,3 @@
-import { Client } from "discord.js"
 import { TypedEmitter } from 'tiny-typed-emitter';
 
 export interface TimeoutOptions {
@@ -21,15 +20,12 @@ export interface Events {
 }
 
 class Timeouts extends TypedEmitter<Events> {
-    options: TimeoutOptions
+    private options: TimeoutOptions
     ready: boolean
-    client: Client
-    constructor(client: Client, options: TimeoutOptions, init = true) {
+    constructor(options: TimeoutOptions) {
         super()
         this.options = options
-        this.client = client
         this.ready = false
-        if(init) this._init()
     }
     public async getTimeouts(): Promise<Timeout[] | any[]> {
         return (await this.options.db.get('timeouts')) || []
@@ -43,7 +39,6 @@ class Timeouts extends TypedEmitter<Events> {
         this.emit('create', {id, expires ,time, data})
     }
     private async _resolve(): Promise<void> {
-        if(!this.client.readyAt) return;
         let timeouts = await this.getTimeouts()
         if(1 > timeouts.length) return;
         for(const timeout of timeouts) {
@@ -89,9 +84,9 @@ class Timeouts extends TypedEmitter<Events> {
             }
         }
     }
-    private _init(): void {
+    public _init(): void {
         setInterval(() => {
-            if(this.client.readyAt) this._resolve.call(this)
+            this._resolve.call(this)
         }, this.options.pulse)
         this.ready = true
         this.emit('ready', this)
